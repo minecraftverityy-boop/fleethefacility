@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compartilhar localização</title>
+</head>
+<body>
+  <h2>📍 Compartilhar minha localização</h2>
+  <p id="status">Aguardando sua autorização...</p>
+  <button id="stop" disabled>Parar compartilhamento</button>
+  <p id="mapa"></p>
+
+  <script>
+    let watchId = null;
+    const status = document.getElementById("status");
+    const mapa = document.getElementById("mapa");
+    const stop = document.getElementById("stop");
+
+    function iniciarCompartilhamento() {
+      if (!navigator.geolocation) {
+        status.textContent = "Localização não suportada.";
+        return;
+      }
+
+      watchId = navigator.geolocation.watchPosition(
+        (p) => {
+          const lat = p.coords.latitude;
+          const lon = p.coords.longitude;
+          const link = "https://maps.google.com/?q=" + lat + "," + lon;
+          mapa.replaceChildren();
+
+          const a = document.createElement("a");
+          a.href = link;
+          a.textContent = "Ver minha localização no mapa";
+          a.target = "_blank";
+          a.rel = "noopener";
+          mapa.appendChild(a);
+
+          status.textContent = "Localização sendo compartilhada nesta página.";
+          stop.disabled = false;
+        },
+        () => {
+          status.textContent = "Permissão negada ou localização indisponível.";
+        }
+      );
+    }
+
+    // Inicia assim que a página carrega
+    window.onload = iniciarCompartilhamento;
+
+    stop.onclick = () => {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+      status.textContent = "Compartilhamento interrompido.";
+      mapa.replaceChildren();
+      stop.disabled = true;
+    };
+  </script>
+</body>
+</html>
